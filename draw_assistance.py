@@ -84,30 +84,42 @@ def draw_aatriangle(win, color, cords1, cords2, cords3, filled=True):
         pygame.gfxdraw.aatrigon(win, x1, y1, x2, y2, x3, y3, color)
 
 
-def draw_aapolygon(win, color, points, antialiasing = False):
-    
+def draw_aapolygon(win, color, points):
+
     pygame.draw.polygon(win, color, points)
-
-    if antialiasing:
-        pygame.gfxdraw.aapolygon(win, points, color)
+    pygame.gfxdraw.aapolygon(win, points, color)
 
 
-def draw_special_polygon(win, color, points, dicke=0, mitte_zeichen = False, antialiasing = False):
+def draw_special_polygon(win, color, points, dicke=0, mitte_zeichen=False, antialiasing=False):
 
     def get_angle(mitte, point, standart_vektor, smallest_possible=True):
+        """returns angle between given matrix point and mitte for reference with standart_vektor
+
+        Args:
+            mitte (matirx): mitte
+            point (matirx): point
+            standart_vektor (matrix): vector which is base for angle comparison
+            smallest_possible (bool, optional): when false the max angle is 2 * pi and otherwise if its false the smaller angle
+            will always be picked
+
+        Retruns: float: angle between two vectors
+        """
+
         standart_vektor = np.array(standart_vektor)
         mitte = np.array(mitte)
         point = np.array(point)
 
+        # vektor vom mitte punkt zum angegebenen (jetzt zwei vergleichbare verktoren verhanden)
         point_vek = point - mitte
 
         angle = angle_between(standart_vektor, point_vek)
 
         # check side of the standart_vector from mitte line the point lies, if on the other one math.pi (180 degree) ist added
         # punkt a und b definieren die linie
-        pa = mitte #punkt a
-        pb = mitte + standart_vektor # punkt b
+
         if not smallest_possible:
+            pa = mitte  # punkt a
+            pb = mitte + standart_vektor  # punkt b
             x = ((pb[0] - pa[0]) * (point[1] - pa[1]) -
                  (pb[1] - pa[1]) * (point[0] - pa[0]))
             if x > 1:
@@ -115,35 +127,45 @@ def draw_special_polygon(win, color, points, dicke=0, mitte_zeichen = False, ant
 
         return angle
 
+    # all vectors behind each other
     gesamt_vektor = [sum([pair[0] for pair in points]),
                      sum([pair[1] for pair in points])]
     point_anzahl = len(points)
+
+    # mid between all points
     mitte = [x / point_anzahl for x in gesamt_vektor]
 
+    # vector of refrence
     standart_vektor = [0, -1]
 
-    points2 = []
+    points_with_angles = []
 
+    # each point with its angle to refrence vector (standart_vector)
     for point in points:
         angle = get_angle(mitte, point, standart_vektor,
                           smallest_possible=False)
-        points2.append([angle, point])
+        points_with_angles.append([angle, point])
 
-    points2.sort(key=lambda x: x[0])
-    draw_points = [x[1] for x in points2]
+    # sort points by angle and only add points in this order to new draw_points list
+    points_with_angles.sort(key=lambda x: x[0])
+    draw_points = [x[1] for x in points_with_angles]
 
     if antialiasing:
-        draw_aapolygon(win, color, draw_points, antialiasing= antialiasing)
+        draw_aapolygon(win, color, draw_points)
     else:
-        pygame.draw.polygon(win, color, points, dicke)
+        pygame.draw.polygon(win, color, draw_points, dicke)
 
-    # drawing draing numers ####################################
+    ############################## for debugging ############################################################################
+
+    # if mitte_zeichen:
+    #     pygame.draw.circle(win, (40, 255, 40), mitte, 3)
+
+    # # drawing draing numers
     # for index, point in enumerate(draw_points):
     #     x = font.render(str(index), False, (255, 255, 255))
     #     win.blit(x, point)
 
-    if mitte_zeichen:
-        pygame.draw.circle(win, (40, 255, 40), mitte, 3)
+    #########################################################################################################################
 
 
 if __name__ == "__main__":
@@ -180,7 +202,7 @@ if __name__ == "__main__":
 
     def draw():
         WIN.fill((0, 0, 0))
-        draw_polygon(WIN, RED, points)
+        draw_special_polygon(WIN, RED, points, mitte_zeichen=True)
 
     def main():
         run = True
