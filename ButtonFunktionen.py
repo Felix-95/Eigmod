@@ -8,13 +8,13 @@ vec = pygame.math.Vector2
 
 
 class Buttons:
-    
+
     def __init__(self, win, scrwidth, scrheight, index, anzahl, inhalt, abstand=40,
-                 width=200, height=70, gesamt_verschiebung_y=0, gesamt_verschiebung_x=0, font_name ="comicsans", font_path = None,
-                 color_normal= (90, 230, 90), color_active=(0, 0, 0) , text_color=None, font_size=40, verschiebung_hintergrund=8,
+                 width=200, height=70, gesamt_verschiebung_y=0, gesamt_verschiebung_x=0, font_name="comicsans", font_path=None,
+                 color_normal=(90, 230, 90), color_active=(0, 0, 0), text_color=None, font_size=40, verschiebung_hintergrund=8,
                  buttons_vertical=True, with_draw_activation=True, button_aufbau_ist_mitte=True, start_x=None, start_y=None,
-                 is_disabled = False, disabled_color_erhohung = 40, nur_schrift = False, nur_umrandung = False,
-                 umrandungs_dicke = 0):
+                 is_disabled=False, disabled_color_erhohung=40, nur_schrift=False, nur_umrandung=False,
+                 umrandungs_dicke=0):
 
         standard_normal = (90, 230, 90)
         standard_active = (0, 0, 0)
@@ -31,17 +31,16 @@ class Buttons:
         self.abstand = abstand  # abstand zwischen den buttons
         self.width = width
         self.height = height
-        
+
         # alle buttons werden um die zahl in y richtung verschoben
         self.gesamt_verschiebung_y = gesamt_verschiebung_y
         self.gesamt_verschiebung_x = gesamt_verschiebung_x  # x richtung
 
         if font_path:
-            self.font = pygame.font.Font(font_path, 30)     
+            self.font = pygame.font.Font(font_path, 30)
         else:
             self.font = pygame.font.SysFont(font_name,  30)
 
-            
         # top (haupt) farbe wenn nicht auf button drauf
         self.color_normal = color_normal
         self.color_active = color_active  # farbe wenn auf button drauf sonst drunter
@@ -69,7 +68,7 @@ class Buttons:
         # wenn nicht bestimmt dann immer die bottem farbe (bei nicht aktivierung ist es active color)
         if not self.text_color:
             self.text_color = self.color_active
-    
+
         # wenn aktiviert schrift ohne hintergrund is displayed
         self.nur_schrift = nur_schrift
         # wenn aktiviert nur rumrandung des rect als hintergrund
@@ -82,7 +81,7 @@ class Buttons:
 
         # dynamic
         self.is_active = False  # ob mousecurser auf button
-         
+        self.is_actively_pressed = False
 
         self.set_botton_position()
         self.set_text_position()
@@ -146,12 +145,12 @@ class Buttons:
             bool: if on button clicked
         """
         hover = self.get_mouse_collision(mouse)
-        
+
         if hover and mouse_event:
             return True
         return False
 
-    def get_mouse_collision(self, maus, ignore_disabled = False):
+    def get_mouse_collision(self, maus, ignore_disabled=False):
         """returns if the mouse is on the button
 
         Args:
@@ -186,33 +185,30 @@ class Buttons:
 
         if self.text_color == top_color:
             self.text_color = bottem_color
-         
 
         draw_text_color = self.text_color
 
-
         if self.is_disabled:
             # wenn disabled kommt helles overlay also alle farben nach oben
-            
+
             top_color = color_erhohen(top_color, self.disabled_color_erhohung)
-            bottem_color = color_erhohen(bottem_color, self.disabled_color_erhohung)
-            draw_text_color = color_erhohen(draw_text_color, self.disabled_color_erhohung)
-  
+            bottem_color = color_erhohen(
+                bottem_color, self.disabled_color_erhohung)
+            draw_text_color = color_erhohen(
+                draw_text_color, self.disabled_color_erhohung)
+
         if not self.nur_schrift:
-            
 
             if self.verschiebung_hintergrund != 0:
                 pygame.draw.rect(self.win, bottem_color,
                                  (self.x + self.verschiebung_hintergrund, self.y + self.verschiebung_hintergrund, self.width, self.height), self.umrandungs_dicke)
-                            
+
             pygame.draw.rect(self.win, top_color,
                              (self.x, self.y, self.width, self.height), self.umrandungs_dicke)
-            
 
-        
         text = self.font.render(self.inhalt, True, draw_text_color)
         self.win.blit(text, (self.text_cords.x, self.text_cords.y))
-    
+
 
 def color_erhohen(color, delta):
     """erhoht farbwerte wenn button disabled ist 
@@ -224,16 +220,28 @@ def color_erhohen(color, delta):
     Returns:
         tuple: new color
     """
-    r ,g ,b = color
-    new_color = (wert_max_255(r, delta), wert_max_255(g, delta), wert_max_255(b, delta))
+    r, g, b = color
+    new_color = (wert_max_255(r, delta), wert_max_255(
+        g, delta), wert_max_255(b, delta))
     return new_color
-    
+
+
 def wert_max_255(x, delta):
     if x + delta <= 255:
         return x + delta
     else:
         return 255
-    
+
+################### chekc button activation ###################
+
+# mouse = pygame.mouse.get_pos()
+# for button in buttons:
+#     pressed = button.get_if_clicked(mouse, mouse_button_down)
+#     title = button.inhalt
+#     if title == "Continue" and pressed:
+#         print("con")
+
+
 if __name__ == '__main__':
     SCRWIDTH = 800
     SCRHEIGHT = 600
@@ -250,40 +258,34 @@ if __name__ == '__main__':
 
     FPS = 60
 
-
     pygame.init()
     WIN = pygame.display.set_mode((SCRWIDTH, SCRHEIGHT))
     pygame.display.set_caption("Space Game")
     directory_of_file = os.path.normpath(sys.argv[0] + os.sep + os.pardir)
 
-
     CLOCK = pygame.time.Clock()
-
 
     def draw():
         WIN.fill(RED)
-        for index, button in enumerate(buttons):
-            active = button.draw()
+        for button in buttons:
+            button.draw()
 
-
-    menübuttons = ["<", ">", "fd", "hallo"]
-
-    buttons = []
-    for index, menübutton in enumerate(menübuttons):
-        buttons.append(Buttons(WIN, SCRWIDTH, SCRHEIGHT, index, len(
-            menübuttons), menübutton, buttons_vertical=False, width=70, height=70,
-            with_draw_activation= False, nur_schrift=False,
-            verschiebung_hintergrund= 5  ))  
-
-  
-    # menübuttons = [["Continue"], ["Highscores"], ["Shop"],
-    #                ["Credits"]]
+    # menübuttons = ["<", ">", "fd", "hallo"]
 
     # buttons = []
     # for index, menübutton in enumerate(menübuttons):
     #     buttons.append(Buttons(WIN, SCRWIDTH, SCRHEIGHT, index, len(
-    #         menübuttons), menübutton[0],  gesamt_verschiebung_y=-20, abstand_oben=0 , abstand_links= 0))
+    #         menübuttons), menübutton, buttons_vertical=False, width=70, height=70,
+    #         nur_schrift=False,
+    #         verschiebung_hintergrund=5))
 
+    menübuttons = [["Continue"], ["Highscores"], ["Shop"],
+                   ["Credits"]]
+
+    buttons = []
+    for index, menübutton in enumerate(menübuttons):
+        buttons.append(Buttons(WIN, SCRWIDTH, SCRHEIGHT, index, len(
+            menübuttons), menübutton[0],  gesamt_verschiebung_y=-20))
 
     def main():
         run = True
@@ -300,21 +302,22 @@ if __name__ == '__main__':
             keys = pygame.key.get_pressed()
 
             mouse = pygame.mouse.get_pos()
-            for index, button in enumerate(buttons):
-                active = button.get_mouse_collision(mouse)
+            for button in buttons:
                 pressed = button.get_if_clicked(mouse, mouse_button_down)
-                if pressed: 
-                    button.is_disabled = not button.is_disabled
+                title = button.inhalt
 
-                if random.randint(0, 100) == 0:
-                    button.is_disabled = False
+                if title == "Continue" and pressed:
+                    print("con")
 
+                # if pressed:
+                #     button.is_disabled = not button.is_disabled
 
+                # if random.randint(0, 100) == 0:
+                #     button.is_disabled = False
 
             draw()
 
             pygame.display.update()
-
 
     main()
     pygame.quit()

@@ -246,5 +246,5 @@ def create_data():
 
     return(infos)
 
-
-# graph_zeichnen(create_data())
+if __name__ == "__main__":
+    graph_zeichnen(create_data())

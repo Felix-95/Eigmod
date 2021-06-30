@@ -165,6 +165,8 @@ def draw_special_polygon(win, color, points, dicke=0, mitte_zeichen=False, antia
     #     x = font.render(str(index), False, (255, 255, 255))
     #     win.blit(x, point)
 
+    
+
     #########################################################################################################################
 
 
