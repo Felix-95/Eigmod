@@ -13,7 +13,7 @@ class CheckBox():
                  given_font_size=40, relative_box_size=0.7, border_thickness=None, is_checked=False, draw_mouse_hover=False,
                  fps=None, tick_color=(30, 130, 255)):
 
-        self.x = x
+        self.x = x    
         self.y = y
         self.text = text
         self.color = color
