@@ -11,10 +11,10 @@ class Buttons:
 
     def __init__(self, win, scrwidth, scrheight, index, anzahl, inhalt, abstand=40,
                  width=200, height=70, gesamt_verschiebung_y=0, gesamt_verschiebung_x=0, font_name="comicsans", font_path=None,
-                 color_normal=(90, 230, 90), color_active=(0, 0, 0), text_color=None, font_size=40, verschiebung_hintergrund=8,
+                 color_normal=(90, 230, 90), color_active=(0, 0, 0), text_color=None, font_size=None, verschiebung_hintergrund=8,
                  buttons_vertical=True, with_draw_activation=True, button_aufbau_ist_mitte=True, start_x=None, start_y=None,
                  is_disabled=False, disabled_color_erhohung=40, nur_schrift=False, nur_umrandung=False,
-                 umrandungs_dicke=0):
+                 umrandungs_dicke=0, font_size_height_rel=0.6):
 
         standard_normal = (90, 230, 90)
         standard_active = (0, 0, 0)
@@ -36,15 +36,19 @@ class Buttons:
         self.gesamt_verschiebung_y = gesamt_verschiebung_y
         self.gesamt_verschiebung_x = gesamt_verschiebung_x  # x richtung
 
-        if font_path:
-            self.font = pygame.font.Font(font_path, 30)
+        if not font_size:
+            self.font_size = int(self.height * font_size_height_rel)
         else:
-            self.font = pygame.font.SysFont(font_name,  30)
+            self.font_size = font_size
+
+        if font_path:
+            self.font = pygame.font.Font(font_path, self.font_size)
+        else:
+            self.font = pygame.font.SysFont(font_name,  self.font_size)
 
         # top (haupt) farbe wenn nicht auf button drauf
         self.color_normal = color_normal
         self.color_active = color_active  # farbe wenn auf button drauf sonst drunter
-        self.font_size = font_size
         # um wie viel der schatten hintergrund verschoben ist
         self.verschiebung_hintergrund = verschiebung_hintergrund
         # wenn true dann sind buttons vertikal aufgestellen, wenn false horizontal
@@ -52,7 +56,7 @@ class Buttons:
         # wenn true verandern buttons farbe wenn mousecurser drauf
         self.with_draw_activation = with_draw_activation
         # wenn true ist der aufbau in der mitte gecentert
-        self.button_aufbau_ist_mitte = button_aufbau_ist_mitte
+        self.button_aufbau_ist_mitte = button_aufbau_ist_mitte  
         # wenn nicht in der mitte gecentert dann ist dies start koordinate x
         self.start_x = start_x
         self.start_y = start_y  # start koordinate y
@@ -234,13 +238,27 @@ def wert_max_255(x, delta):
 
 ################### chekc button activation ###################
 
+# menübuttons = [["Continue"], ["Highscores"], ["Shop"],
+#                    ["Credits"]]
+
+# buttons = []
+# for index, menübutton in enumerate(menübuttons):
+#     buttons.append(Buttons(WIN, SCRWIDTH, SCRHEIGHT, index, len(
+#         menübuttons), menübutton[0],  gesamt_verschiebung_y=-20))
+
+
+# mouse_button_down = False
+# for event in pygame.event.get():
+#     if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+#         mouse_button_down = True
+
 # mouse = pygame.mouse.get_pos()
 # for button in buttons:
 #     pressed = button.get_if_clicked(mouse, mouse_button_down)
 #     title = button.inhalt
-#     if title == "Continue" and pressed:
-#         print("con")
-
+#     if pressed:
+#         if title == "Continue":
+#             menu_run = False
 
 if __name__ == '__main__':
     SCRWIDTH = 800
@@ -285,7 +303,7 @@ if __name__ == '__main__':
     buttons = []
     for index, menübutton in enumerate(menübuttons):
         buttons.append(Buttons(WIN, SCRWIDTH, SCRHEIGHT, index, len(
-            menübuttons), menübutton[0],  gesamt_verschiebung_y=-20))
+            menübuttons), menübutton[0],  gesamt_verschiebung_y=-20, font_size_height_rel=0.4))
 
     def main():
         run = True
