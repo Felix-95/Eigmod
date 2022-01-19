@@ -1,19 +1,21 @@
+
 import pygame
 import os
 import sys
 
-import collisionen
 
-
-pygame.init()
+if __name__ == '__main__' or os.path.normpath(sys.argv[0] + os.sep + os.pardir) == os.path.normpath(__file__ + os.sep + os.pardir):
+    from help_functions import get_font_size
+else:
+    from .help_functions import get_font_size
 
 
 class CheckBox():
     def __init__(self, x, y, text=None, given_height=None, color=(255, 255, 255), font_name="comicsans",
                  given_font_size=40, relative_box_size=0.7, border_thickness=None, is_checked=False, draw_mouse_hover=False,
-                 fps=None, tick_color=(30, 130, 255)):
+                 fps=None, tick_color=(30, 130, 255), check_mouse_button_index=0):
 
-        self.x = x    
+        self.x = x
         self.y = y
         self.text = text
         self.color = color
@@ -29,6 +31,7 @@ class CheckBox():
         self.given_height = given_height
 
         self.click_counter = 0
+        self.check_mouse_button_index = check_mouse_button_index
 
         self.set_up()
 
@@ -48,13 +51,7 @@ class CheckBox():
     def set_up(self):
 
         if self.given_height:
-            test_size = 100
-            test_font = pygame.font.SysFont(self.font_name, test_size)
-            t_test_font = test_font.render(self.text, True, (255, 255, 255))
-            font_height = t_test_font.get_height()
-
-            height_per_size = font_height/test_size
-            font_size = int(round(self.given_height / height_per_size, 0))
+            font_size = get_font_size(self.font_name, self.given_height)
         else:
             font_size = self.given_font_size
 
@@ -101,16 +98,21 @@ class CheckBox():
 
         # pygame.draw.rect(win, (255,0,0), (self.x, self.y, self.text_width+ + self.box_lenght + 4 * self.abstand, self.text_height), self.border_thickness)
 
-    def update(self, click_event):
+    def update(self):
+        self.changed = False
 
         mouse = pygame.mouse.get_pos()
+
+        button_pressed = pygame.mouse.get_pressed()[
+            self.check_mouse_button_index]
 
         if self.click_counter > 0:
             self.click_counter -= 1
 
-        if collisionen.point_square(mouse, (self.box_rect.x, self.box_rect.y), (self.box_rect.width, self.box_rect.height)):
-            if click_event and self.click_counter == 0:
+        if self.box_rect.collidepoint(mouse):
+            if button_pressed and self.click_counter == 0:
                 self.is_checked = not self.is_checked
+                self.changed = True
                 if self.fps:
                     self.click_counter = int(self.fps/5)
                 else:
@@ -142,7 +144,6 @@ if __name__ == '__main__':
 
     WIN = pygame.display.set_mode((SCRWIDTH, SCRHEIGHT))
     pygame.display.set_caption("Space Game")
-    directory_of_file = os.path.normpath(sys.argv[0] + os.sep + os.pardir)
 
     CLOCK = pygame.time.Clock()
 
@@ -159,13 +160,7 @@ if __name__ == '__main__':
                 if event.type == pygame.QUIT:
                     run = False
 
-                if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                    click_event = True
-                else:
-                    click_event = False
-
-            mouse = pygame.mouse.get_pos()
-            c.update(click_event)
+            c.update()
 
             draw()
 

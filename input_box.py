@@ -14,8 +14,8 @@ class InputBox:
                  input_anfangs_active=False, umrandung="rect", input_max_len_automatic=False,
                  input_font_size=None, input_max_len_font_size=None, max_len_info_anzeigen=True,
                  anfangs_anzeige_text="", vergroserungs_richtung="beide", font_size_height_rel=0.75,
-                 zeilen_abstand_rel=1, binde_seite="mitte", mit_user_next_line=True, input_max_len_rendered=None,
-                 font_path=None, font_scale=1, custom_format=False):
+                 zeilen_abstand_rel=1, binde_seite="mitte", mit_user_next_line=False, input_max_len_rendered=None,
+                 font_path=None, font_scale=1, custom_format=False, label = None, label_x = None, label_abstand_x = None):
         """umrandung: "rect", "line"
             vergroserungs_richtung: "beide", "oben", "unten"  
             binde_seite: "mitte", "rechts", "links"
@@ -24,10 +24,8 @@ class InputBox:
         self.width = width
         self.height = height
         self.anfangs_height = self.height
-        x += self.width/2
-        y += self.height/2
-        self.anfangs_y = y
-        self.anfangs_x = x
+        self.anfangs_y = y + self.width/2
+        self.anfangs_x = x + self.height/2
         self.input_color_active = input_color_active
         self.input_color_passive = input_color_passive
         self.input_color = self.input_color_passive
@@ -48,8 +46,15 @@ class InputBox:
         self.font_scale = font_scale
         self.custom_format = custom_format
 
+        self.label = label
+        input_rect_x = x
+        if label:
+            self.label_x = label_x
+            input_rect_x = label_x + label_abstand_x
+            self.label_y = y
+
         self.input_rect = pygame.Rect(
-            x - self.width / 2, y - self.height/2, self.width, self.height)
+            input_rect_x, y, self.width, self.height)
 
         self.input_spacer_counter = 0
         self.backspace_counter = 0
@@ -233,6 +238,9 @@ class InputBox:
 
                 self.rect_verschiebung_add_zeile()
 
+    def set_input_text_value(self, value):
+        self.input_text_list = [value]
+
     def rect_verschiebung_add_zeile(self):
         """changes rect position because of new line
         """
@@ -282,6 +290,8 @@ class InputBox:
         Args:
             event ([type]): [description]
         """
+
+        
 
         # activation of field based on mouse activity
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
@@ -384,12 +394,12 @@ class InputBox:
                     if add_character:
                         self.input_text_ist_max_len = False
                         self.input_text_list[self.input_text_index] += event.unicode
-                    
-
+        
         if event.type == pygame.KEYUP:
             if event.key == pygame.K_BACKSPACE:
                 self.backspace_active = False
                 self.backspace_active_counter = 0
+        
 
     def draw(self, win):
 
@@ -416,6 +426,12 @@ class InputBox:
                 f"Maximale Länge Erreicht!", True, (255, 255, 255))
             win.blit(t_input, (self.anfangs_x - t_input.get_width()//2,
                                self.input_rect.y + self.input_rect.height + t_input.get_height()//2))
+
+        if self.label:
+            y = self.label_y + ((1 - self.font_size_height_rel) * self.input_rect.height)
+            t_label = self.input_font.render(
+                self.label, True, (255, 255, 255))
+            win.blit(t_label, (self.label_x, y))
 
 
 if __name__ == '__main__':
@@ -452,14 +468,19 @@ if __name__ == '__main__':
     def main():
         run = True
         input_box = InputBox(100, 100, 250, 50,  anfangs_anzeige_text=["lol", "rutsch"],
-                             umrandung="rect", mit_zeilen_umbruch=True, input_anfangs_active=False, vergroserungs_richtung="beide",
-                             font_size_height_rel=1, zeilen_abstand_rel=0.7, binde_seite="rechts")
+                             umrandung="rect", input_anfangs_active=False, vergroserungs_richtung="beide",
+                             font_size_height_rel=1, zeilen_abstand_rel=0.7, binde_seite="links", label= "Test:", label_x= 200, 
+                              label_abstand_x= 100)
 
         while run:
             CLOCK.tick(FPS)
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     run = False
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_r:
+                        input_box.set_input_text_value("34:54")
+                    
                 input_box.event_check(event)
 
             input_box.update()

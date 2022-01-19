@@ -14,7 +14,7 @@ class Buttons:
                  color_normal=(90, 230, 90), color_active=(0, 0, 0), text_color=None, font_size=None, verschiebung_hintergrund=8,
                  buttons_vertical=True, with_draw_activation=True, button_aufbau_ist_mitte=True, start_x=None, start_y=None,
                  is_disabled=False, disabled_color_erhohung=40, nur_schrift=False, nur_umrandung=False,
-                 umrandungs_dicke=0, font_size_height_rel=0.6):
+                 umrandungs_dicke=0, font_size_height_rel=0.6, x=None, y=None):
 
         standard_normal = (90, 230, 90)
         standard_active = (0, 0, 0)
@@ -56,7 +56,7 @@ class Buttons:
         # wenn true verandern buttons farbe wenn mousecurser drauf
         self.with_draw_activation = with_draw_activation
         # wenn true ist der aufbau in der mitte gecentert
-        self.button_aufbau_ist_mitte = button_aufbau_ist_mitte  
+        self.button_aufbau_ist_mitte = button_aufbau_ist_mitte
         # wenn nicht in der mitte gecentert dann ist dies start koordinate x
         self.start_x = start_x
         self.start_y = start_y  # start koordinate y
@@ -87,7 +87,12 @@ class Buttons:
         self.is_active = False  # ob mousecurser auf button
         self.is_actively_pressed = False
 
-        self.set_botton_position()
+        if x != None and y != None:
+            self.x = x
+            self.y = y
+        else:
+            self.set_botton_position()
+
         self.set_text_position()
 
     def set_botton_position(self):
@@ -138,7 +143,7 @@ class Buttons:
 
         self.text_cords = vec(mitte_x, mitte_y)
 
-    def get_if_clicked(self, mouse, mouse_event):
+    def get_if_clicked(self, mouse=None, mouse_event = None):
         """checks of mouse is on button and if mouse presses
 
         Args:
@@ -148,6 +153,10 @@ class Buttons:
         Returns:
             bool: if on button clicked
         """
+        if not mouse or not mouse_event:
+            mouse = pygame.mouse.get_pos()
+            mouse_event = pygame.mouse.get_pressed()[0]
+            
         hover = self.get_mouse_collision(mouse)
 
         if hover and mouse_event:

@@ -40,7 +40,7 @@ def opacity_rect(dimentions, color, op, lines_to_draw=(True, True, True, True), 
         breite (int, optional): width of single line. Defaults to -1.
 
     Returns:
-        [(rel_x,rel_y), surface]: list of relative_draw_cords, surface
+        [surface]: surface
     """
     width, height = dimentions
 
@@ -90,59 +90,58 @@ def draw_aapolygon(win, color, points):
     pygame.gfxdraw.aapolygon(win, points, color)
 
 
-def draw_special_polygon(win, color, points, dicke=0, mitte_zeichen=False, antialiasing=False):
+def get_angle(mid, point, reference_vector, smallest_possible=True):
+    """returns angle between given matrix point and (mid, reference_vector)
+    Args:
+        mid (matirx): mid
+        point (matirx): point
+        reference_vector (matrix): vector which is base for angle comparison
+        smallest_possible (bool, optional): when false the max angle is 2 * pi and otherwise if its false the smaller angle
+        will always be picked
 
-    def get_angle(mitte, point, standart_vektor, smallest_possible=True):
-        """returns angle between given matrix point and mitte for reference with standart_vektor
+    Retruns: float: angle between two vectors (0-pi)
+    """
 
-        Args:
-            mitte (matirx): mitte
-            point (matirx): point
-            standart_vektor (matrix): vector which is base for angle comparison
-            smallest_possible (bool, optional): when false the max angle is 2 * pi and otherwise if its false the smaller angle
-            will always be picked
+    reference_vector = np.array(reference_vector)
+    mid = np.array(mid)
+    point = np.array(point)
 
-        Retruns: float: angle between two vectors
-        """
+    # vector from mid to given point in order to have to compare direction
+    point_vec = point - mid
 
-        standart_vektor = np.array(standart_vektor)
-        mitte = np.array(mitte)
-        point = np.array(point)
+    angle = angle_between(reference_vector, point_vec)
 
-        # vektor vom mitte punkt zum angegebenen (jetzt zwei vergleichbare verktoren verhanden)
-        point_vek = point - mitte
+    # expands value range from pi to 2pi by checking on which side of testline the point lies
+    if not smallest_possible:
+        reference_point = mid + reference_vector
+        x = ((reference_point[0] - mid[0]) * (point[1] - mid[1]) -
+             (reference_point[1] - mid[1]) * (point[0] - mid[0]))
+        if x > 1:
+            angle = (math.pi * 2) - angle
 
-        angle = angle_between(standart_vektor, point_vek)
+    return angle
 
-        # check side of the standart_vector from mitte line the point lies, if on the other one math.pi (180 degree) ist added
-        # punkt a und b definieren die linie
 
-        if not smallest_possible:
-            pa = mitte  # punkt a
-            pb = mitte + standart_vektor  # punkt b
-            x = ((pb[0] - pa[0]) * (point[1] - pa[1]) -
-                 (pb[1] - pa[1]) * (point[0] - pa[0]))
-            if x > 1:
-                angle = (math.pi * 2) - angle
-
-        return angle
+def draw_special_polygon(win, color, points, width=0, antialiasing=False):
+    """draws polygon from points in any order
+    """
 
     # all vectors behind each other
-    gesamt_vektor = [sum([pair[0] for pair in points]),
-                     sum([pair[1] for pair in points])]
+    total_vector = [sum([pair[0] for pair in points]),
+                    sum([pair[1] for pair in points])]
     point_anzahl = len(points)
 
     # mid between all points
-    mitte = [x / point_anzahl for x in gesamt_vektor]
+    mid = [x / point_anzahl for x in total_vector]
 
-    # vector of refrence
-    standart_vektor = [0, -1]
+    # vector of reference
+    reference_vector = [0, -1]
 
     points_with_angles = []
 
-    # each point with its angle to refrence vector (standart_vector)
+    # each point with its angle to reference vector (standart_vector)
     for point in points:
-        angle = get_angle(mitte, point, standart_vektor,
+        angle = get_angle(mid, point, reference_vector,
                           smallest_possible=False)
         points_with_angles.append([angle, point])
 
@@ -153,26 +152,12 @@ def draw_special_polygon(win, color, points, dicke=0, mitte_zeichen=False, antia
     if antialiasing:
         draw_aapolygon(win, color, draw_points)
     else:
-        pygame.draw.polygon(win, color, draw_points, dicke)
-
-    ############################## for debugging ############################################################################
-
-    # if mitte_zeichen:
-    #     pygame.draw.circle(win, (40, 255, 40), mitte, 3)
-
-    # # drawing draing numers
-    # for index, point in enumerate(draw_points):
-    #     x = font.render(str(index), False, (255, 255, 255))
-    #     win.blit(x, point)
-
-    
-
-    #########################################################################################################################
+        pygame.draw.polygon(win, color, draw_points, width)
 
 
 if __name__ == "__main__":
 
-    points = [(91, 25), (109, 116), (69, 21), (131, 120), (177, 57), (23, 84)]
+    points = [(130, 25), (109, 116), (69, 21), (131, 120), (177, 57)]
 
     pygame.init()
     pygame.font.init()
@@ -202,9 +187,18 @@ if __name__ == "__main__":
 
     CLOCK = pygame.time.Clock()
 
+    def shift_points(points, dx=0, dy=0):
+        new_points = [(point[0]+dx, point[1]+dy) for point in points]
+        return new_points
+
     def draw():
         WIN.fill((0, 0, 0))
-        draw_special_polygon(WIN, RED, points, mitte_zeichen=True)
+        draw_special_polygon(WIN, RED, points)
+        pygame.draw.polygon(WIN, GREEN, shift_points(points, dy=150))
+        # draw_special_polygon(WIN, GREEN, shift_points(points, dx=150), antialiasing=True)
+        pygame.draw.polygon(WIN, BLUE, shift_points(points, dx=150, dy=150), )
+        # pygame.gfxdraw.aapolygon(WIN, shift_points(points, dx=300), BLUE)
+        #pygame.gfxdraw.aafilled_circle(WIN, 100, 100, 50, (255,0,0))
 
     def main():
         run = True
@@ -215,16 +209,9 @@ if __name__ == "__main__":
                 if event.type == pygame.QUIT:
                     run = False
 
-            keys = pygame.key.get_pressed()
-
             draw()
 
             pygame.display.update()
 
     main()
     pygame.quit()
-
-    # pygame.gfxdraw.aafilled_circle(WIN, 100, 100, 50, (255,0,0))
-
-    # x = opacity_rect((100,100), (255,255,0), 0.5, 5)
-    # print(x)
