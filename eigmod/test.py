@@ -5,6 +5,7 @@ import sys
 from pygame import gfxdraw
 
 # test change
+# test change #2
 
 SCRWIDTH = 600
 SCRHEIGHT = 600
